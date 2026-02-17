@@ -1,4 +1,7 @@
 package com.bichomania.clinicavet.domain.reminder;
 
-public class SendingStatus {
+public enum SendingStatus {
+    PENDENTE,
+    ENVIADO,
+    FALHA // Adicionado para suportar melhor o ciclo de vida no domínio
 }

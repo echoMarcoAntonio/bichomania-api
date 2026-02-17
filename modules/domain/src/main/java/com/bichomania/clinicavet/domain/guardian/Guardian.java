@@ -1,107 +1,182 @@
 package com.bichomania.clinicavet.domain.guardian;
 
 import com.bichomania.clinicavet.common.exception.ExceptionMessages;
+import com.bichomania.clinicavet.common.exception.guardian.InvalidGuardianException;
+import com.bichomania.clinicavet.domain.shared.valueobjects.Address;
+import com.bichomania.clinicavet.domain.shared.valueobjects.Contact;
+import com.bichomania.clinicavet.domain.shared.valueobjects.Cpf;
+import com.bichomania.clinicavet.domain.shared.valueobjects.Email;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.*;
 
-public class Guardian {
+/**
+ * Entidade Guardian (Tutor) - Domain Entity
+ */
+public final class Guardian {
 
-    /**
-     * Entidade Vaccine (Vacina do domínio)
-     * Contém regras de negócio e imutabilidade parcial.
-     * Não conhece JPA, DTOs ou Spring.
-     */
+    // Regras de negócio
+    private static final int MAX_NAME_LENGTH = 100;
 
-    public class Vaccine {
+    // Mensagens de exceção
+    private static final String NAME_REQUIRED = ExceptionMessages.GUARDIAN_NAME_REQUIRED;
+    private static final String NAME_TOO_LONG = ExceptionMessages.GUARDIAN_NAME_TOO_LONG;
+    private static final String CONTACT_REQUIRED = ExceptionMessages.GUARDIAN_CONTACT_REQUIRED;
+    private static final String CONTACT_ONE_PRINCIPAL = ExceptionMessages.GUARDIAN_CONTACT_ONE_PRINCIPAL;
 
-        // Mensagens de exceção definidas de forma centralizada em ExceptionMessages
-        private static final String VACCINE_FIELD_REQUIRED = ExceptionMessages.VACCINE_FIELD_REQUIRED;
-        private static final String E = ExceptionMessages.VACCINE_DATE_IN_PAST;
+    // Atributos de estado
+    private final UUID id;
+    private final Cpf cpf;
+    private final Set<Contact> contacts;
+    private final Set<Address> addresses;
+    private final LocalDateTime createdAt;
+    private String name;
+    private Email email;
+    private boolean active;
+    private LocalDateTime updatedAt;
 
-        // Campos essenciais do domínio
-        private final java.util.UUID id;
-        private final String name;
+    // Construtor privado (Garante invariantes)
+    private Guardian(
+            UUID id,
+            String name,
+            Cpf cpf,
+            Email email,
+            Set<Contact> contacts,
+            Set<Address> addresses,
+            boolean active,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        validateName(name);
+        validateContacts(contacts);
 
-        // Listas de agregados
+        this.id = id != null ? id : UUID.randomUUID();
+        this.name = name.trim();
+        this.cpf = Objects.requireNonNull(cpf);
+        this.email = email;
+        this.contacts = new HashSet<>(contacts);
+        this.addresses = addresses != null ? new HashSet<>(addresses) : new HashSet<>();
+        this.active = active;
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.updatedAt = updatedAt != null ? updatedAt : this.createdAt;
+    }
 
-        // Auditoria do domínio
-        private final LocalDateTime createdAt;
-        private final LocalDateTime updatedAt;
+    // Validações
+    private static void validateName(String name) {
+        if (name == null || name.trim().isEmpty())
+            throw new InvalidGuardianException(NAME_REQUIRED);
+        if (name.trim().length() > MAX_NAME_LENGTH)
+            throw new InvalidGuardianException(NAME_TOO_LONG);
+    }
 
-        /**
-         * Construtor privado.
-         * Usado internamente por factory methods e reconstituição do banco.
-         */
-        private Vaccine(java.util.UUID id, String name,
-                        LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private static void validateContacts(Set<Contact> contacts) {
+        if (contacts == null || contacts.isEmpty())
+            throw new InvalidGuardianException(CONTACT_REQUIRED);
+        long principals = contacts.stream().filter(Contact::isPrincipal).count();
+        if (principals != 1)
+            throw new InvalidGuardianException(CONTACT_ONE_PRINCIPAL);
+    }
 
-            // Valida campos obrigatórios
-            if (name == null) {
-                throw new InvalidVaccineException(VACCINE_FIELD_REQUIRED);
-            }
+    // Factories
+    public static Guardian create(String name, Cpf cpf, Email email,
+                                  Set<Contact> contacts, Set<Address> addresses) {
+        return new Guardian(null, name, cpf, email, contacts, addresses, true, null, null);
+    }
 
-            // Inicializa campos
-            this.id = (id != null) ? id : java.util.UUID.randomUUID();
-            this.name = name;
-            this.createdAt = createdAt;
-            this.updatedAt = updatedAt;
-        }
+    public static Guardian reconstitute(UUID id, String name, Cpf cpf, Email email,
+                                        Set<Contact> contacts, Set<Address> addresses,
+                                        boolean active, LocalDateTime createdAt,
+                                        LocalDateTime updatedAt) {
+        return new Guardian(id, name, cpf, email, contacts, addresses, active, createdAt, updatedAt);
+    }
 
-        /**
-         * Factory method para criação de novo vaccine.
-         * Garante validação de campos e regras de negócio.
-         */
-        public static com.bichomania.clinicavet.domain.vaccine.Vaccine create(java.util.UUID id, String name {
+    // Métodos de atualização (Comportamento)
+    public void updateName(String newName) {
+        validateName(newName);
+        this.name = newName.trim();
+        this.updatedAt = LocalDateTime.now();
+    }
 
-            // Valida campos obrigatórios
-            if (name == null) {
-                throw new InvalidVaccineException(VACCINE_FIELD_REQUIRED);
-            }
+    public void updateEmail(Email newEmail) {
+        this.email = Objects.requireNonNull(newEmail);
+        this.updatedAt = LocalDateTime.now();
+    }
 
-            // Valida data de nascimento
-            if (.isAfter(LocalDate.now())) {
-                throw new InvalidVaccineException(VACCINE_DATE_IN_FUTURE);
-            }
+    public void addContact(Contact contact) {
+        contacts.add(Objects.requireNonNull(contact));
+        validateContacts(contacts);
+        this.updatedAt = LocalDateTime.now();
+    }
 
-            return new com.bichomania.clinicavet.domain.vaccine.Vaccine(
-                    name,
-                    );
-        }
+    public void addAddress(Address address) {
+        addresses.add(Objects.requireNonNull(address));
+        this.updatedAt = LocalDateTime.now();
+    }
 
-        /**
-         * Reconstitui vaccine existente do banco.
-         * Mantém imutabilidade parcial e listas defensivas.
-         */
-        public static com.bichomania.clinicavet.domain.vaccine.Vaccine reconstitute(java.util.UUID id, String name,
-                                                                                    LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public void deactivate() {
+        this.active = false;
+        this.updatedAt = LocalDateTime.now();
+    }
 
-            return new com.bichomania.clinicavet.domain.vaccine.Vaccine(id, name, createdAt, updatedAt);
-        }
+    public Contact getPrincipalContact() {
+        return contacts.stream()
+                .filter(Contact::isPrincipal)
+                .findFirst()
+                .orElseThrow(() -> new InvalidGuardianException(CONTACT_ONE_PRINCIPAL));
+    }
 
-        // Métodos de domínio
+    // Getters
+    public UUID getId() {
+        return id;
+    }
 
-        public LocalDateTime getCreatedAt() {
-            return createdAt;
-        }
+    public String getName() {
+        return name;
+    }
 
-        public LocalDateTime getUpdatedAt() {
-            return updatedAt;
-        }
+    public Cpf getCpf() {
+        return cpf;
+    }
 
-        // Equals e HashCode baseados no ID
+    public Email getEmail() {
+        return email;
+    }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof com.bichomania.clinicavet.domain.pet.Pet pet)) return false;
-            return Objects.equals(id, vaccine.id);
-        }
+    public Set<Contact> getContacts() {
+        return Collections.unmodifiableSet(contacts);
+    }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(id);
-        }
+    public Set<Address> getAddresses() {
+        return Collections.unmodifiableSet(addresses);
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Guardian g)) return false;
+        return Objects.equals(id, g.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Guardian[id=%s, name='%s', cpf='%s', active=%s]",
+                id, name, cpf.getFormatted(), active);
     }
 }

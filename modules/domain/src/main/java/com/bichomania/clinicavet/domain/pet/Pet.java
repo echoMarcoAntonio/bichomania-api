@@ -4,6 +4,7 @@ import com.bichomania.clinicavet.common.exception.ExceptionMessages;
 import com.bichomania.clinicavet.common.exception.pet.InvalidPetException;
 import com.bichomania.clinicavet.domain.dewormerapplication.DewormerApplication;
 import com.bichomania.clinicavet.domain.vaccineapplication.VaccineApplication;
+import com.bichomania.clinicavet.domain.reminder.Reminder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,201 +13,133 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
- * Entidade Pet do domínio.
- * Contém regras de negócio e imutabilidade parcial.
- * Não conhece JPA, DTOs ou Spring.
+ * Entidade Pet (Aggregate Root)
+ * Segue o padrão imutável para evolução de estado e listas defensivas.
  */
-public class Pet {
+public final class Pet {
 
-    // Mensagens de exceção definidas de forma centralizada em ExceptionMessages
     private static final String PET_FIELD_REQUIRED = ExceptionMessages.PET_FIELD_REQUIRED;
     private static final String BIRTH_DATE_IN_FUTURE = ExceptionMessages.PET_BIRTH_DATE_IN_FUTURE;
 
-    // Campos essenciais do domínio
-    private final java.util.UUID id;
-    private final java.util.UUID guardianId;
+    private final UUID id;
+    private final UUID guardianId;
     private final String name;
     private final LocalDate birthDate;
-    private String breed;
+    private final String breed;
     private final Sex sex;
     private final Boolean isCastrated;
-    private String microchipNumber;
-    private String history;
+    private final String microchipNumber;
+    private final String history;
 
-    // Listas de agregados
+    // Listas internas mutáveis apenas dentro da instância
     private final List<VaccineApplication> vaccineApplications;
     private final List<DewormerApplication> dewormerApplications;
     private final List<Reminder> reminders;
 
-    // Auditoria do domínio
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    /**
-     * Construtor privado.
-     * Usado internamente por factory methods e reconstituição do banco.
-     */
-    private Pet(java.util.UUID id, java.util.UUID guardianId, String name, LocalDate birthDate, String breed,
+    private Pet(UUID id, UUID guardianId, String name, LocalDate birthDate, String breed,
                 Sex sex, Boolean isCastrated, String microchipNumber, String history,
                 List<VaccineApplication> vaccineApplications,
                 List<DewormerApplication> dewormerApplications,
                 List<Reminder> reminders,
                 LocalDateTime createdAt, LocalDateTime updatedAt) {
 
-        // Valida campos obrigatórios
         if (guardianId == null || name == null || birthDate == null || sex == null || isCastrated == null || breed == null || breed.isBlank()) {
             throw new InvalidPetException(PET_FIELD_REQUIRED);
         }
 
-        // Inicializa campos
-        this.id = (id != null) ? id : java.util.UUID.randomUUID();
+        this.id = (id != null) ? id : UUID.randomUUID();
         this.guardianId = guardianId;
         this.name = name;
         this.birthDate = birthDate;
-        this.breed = breed;
+        this.breed = breed.trim();
         this.sex = sex;
         this.isCastrated = isCastrated;
         this.microchipNumber = microchipNumber;
         this.history = history;
+
         this.vaccineApplications = vaccineApplications != null ? new ArrayList<>(vaccineApplications) : new ArrayList<>();
         this.dewormerApplications = dewormerApplications != null ? new ArrayList<>(dewormerApplications) : new ArrayList<>();
         this.reminders = reminders != null ? new ArrayList<>(reminders) : new ArrayList<>();
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+
+        this.createdAt = (createdAt != null) ? createdAt : LocalDateTime.now();
+        this.updatedAt = (updatedAt != null) ? updatedAt : this.createdAt;
     }
 
-    /**
-     * Factory method para criação de novo pet.
-     * Garante validação de campos e regras de negócio.
-     */
-    public static Pet create(java.util.UUID guardianId, String name, LocalDate birthDate, String breed,
+    public static Pet create(UUID guardianId, String name, LocalDate birthDate, String breed,
                              Sex sex, Boolean isCastrated, String microchipNumber, String history) {
 
-        // Valida campos obrigatórios
-        if (guardianId == null || name == null || birthDate == null || sex == null || isCastrated == null || breed == null || breed.isBlank()) {
-            throw new InvalidPetException(PET_FIELD_REQUIRED);
-        }
-
-        // Valida data de nascimento
-        if (birthDate.isAfter(LocalDate.now())) {
+        if (birthDate != null && birthDate.isAfter(LocalDate.now())) {
             throw new InvalidPetException(BIRTH_DATE_IN_FUTURE);
         }
 
-        return new Pet(
-                null,
-                guardianId,
-                name,
-                birthDate,
-                breed,
-                sex,
-                isCastrated,
-                microchipNumber,
-                history,
-                null,
-                null,
-                null
-                );
+        return new Pet(null, guardianId, name, birthDate, breed, sex, isCastrated,
+                microchipNumber, history, null, null, null, null, null);
     }
 
-    /**
-     * Reconstitui pet existente do banco.
-     * Mantém imutabilidade parcial e listas defensivas.
-     */
-    public static Pet reconstitute(java.util.UUID id, java.util.UUID guardianId, String name, LocalDate birthDate,
+    public static Pet reconstitute(UUID id, UUID guardianId, String name, LocalDate birthDate,
                                    String breed, Sex sex, Boolean isCastrated, String microchipNumber,
                                    String history, List<VaccineApplication> vaccineApplications,
                                    List<DewormerApplication> dewormerApplications,
                                    List<Reminder> reminders,
                                    LocalDateTime createdAt, LocalDateTime updatedAt) {
 
-        if (birthDate != null && birthDate.isAfter(LocalDate.now())) {
-            throw new InvalidPetException(BIRTH_DATE_IN_FUTURE);
-        }
-
         return new Pet(id, guardianId, name, birthDate, breed, sex, isCastrated,
                 microchipNumber, history, vaccineApplications, dewormerApplications,
                 reminders, createdAt, updatedAt);
     }
 
-    // Métodos de domínio
+    // --- Métodos de Evolução de Estado ---
 
-    public void updateBreed(String newBreed) {
-        if (newBreed != null && !newBreed.isBlank()) {
-            this.breed = newBreed;
-        }
+    /**
+     * Atualiza dados mutáveis do pet, retornando uma nova instância e atualizando o carimbo de tempo.
+     */
+    public Pet updateDetails(String newBreed, String newMicrochipNumber, String newHistory) {
+        return new Pet(
+                this.id, this.guardianId, this.name, this.birthDate,
+                (newBreed != null && !newBreed.isBlank()) ? newBreed.trim() : this.breed,
+                this.sex, this.isCastrated, newMicrochipNumber, newHistory,
+                this.vaccineApplications, this.dewormerApplications, this.reminders,
+                this.createdAt, LocalDateTime.now()
+        );
     }
 
-    public void updateMicrochipNumber(String newMicrochipNumber) {
-        this.microchipNumber = newMicrochipNumber;
+    // --- Métodos de Agregação ---
+
+    public void addVaccineApplication(VaccineApplication application) {
+        if (application != null) this.vaccineApplications.add(application);
     }
 
-    public void updateHistory(String newHistory) {
-        this.history = newHistory;
-    }
-
-    public void addVaccineApplication(VaccineApplication vaccineApplication) {
-        if (vaccineApplication != null) {
-            this.vaccineApplications.add(vaccineApplication);
-        }
-    }
-
-    public void addDewormerApplication(DewormerApplication dewormerApplication) {
-        if (dewormerApplication != null) {
-            this.dewormerApplications.add(dewormerApplication);
-        }
+    public void addDewormerApplication(DewormerApplication application) {
+        if (application != null) this.dewormerApplications.add(application);
     }
 
     public void addReminder(Reminder reminder) {
-        if (reminder != null) {
-            this.reminders.add(reminder);
-        }
+        if (reminder != null) this.reminders.add(reminder);
     }
 
-    /**
-     * Calcula idade do pet em anos inteiros.
-     */
     public int calculateAgeInYears() {
-        return Period.between(this.birthDate, LocalDate.now()).getYears();    }
-
-    // Getters (somente leitura)
-
-    public java.util.UUID getId() {
-        return id;
+        return Period.between(this.birthDate, LocalDate.now()).getYears();
     }
 
-    public java.util.UUID getGuardianId() {
-        return guardianId;
-    }
+    // --- Getters (Listas Defensivas) ---
 
-    public String getName() {
-        return name;
-    }
-
-    public LocalDate getBirthDate() {
-        return birthDate;
-    }
-
-    public String getBreed() {
-        return breed;
-    }
-
-    public Sex getSex() {
-        return sex;
-    }
-
-    public Boolean getIsCastrated() {
-        return isCastrated;
-    }
-
-    public String getMicrochipNumber() {
-        return microchipNumber;
-    }
-
-    public String getHistory() {
-        return history;
-    }
+    public UUID getId() { return id; }
+    public UUID getGuardianId() { return guardianId; }
+    public String getName() { return name; }
+    public LocalDate getBirthDate() { return birthDate; }
+    public String getBreed() { return breed; }
+    public Sex getSex() { return sex; }
+    public Boolean getIsCastrated() { return isCastrated; }
+    public String getMicrochipNumber() { return microchipNumber; }
+    public String getHistory() { return history; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     public List<VaccineApplication> getVaccineApplications() {
         return Collections.unmodifiableList(vaccineApplications);
@@ -220,16 +153,6 @@ public class Pet {
         return Collections.unmodifiableList(reminders);
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    // Equals e HashCode baseados no ID
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -240,5 +163,10 @@ public class Pet {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Pet[id=%s, name='%s', breed='%s']", id, name, breed);
     }
 }

@@ -1,4 +1,5 @@
 package com.bichomania.clinicavet.domain.pet;
 
-public class Sex {
+public enum Sex {
+    M, F
 }

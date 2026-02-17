@@ -10,4 +10,5 @@ java {
 
 dependencies {
     implementation(project(":modules:common"))
+    compileOnly("jakarta.persistence:jakarta.persistence-api:3.1.0")
 }

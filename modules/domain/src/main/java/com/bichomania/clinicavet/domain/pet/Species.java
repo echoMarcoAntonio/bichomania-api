@@ -1,4 +1,5 @@
 package com.bichomania.clinicavet.domain.pet;
 
-public class Species {
+public enum Species {
+    CACHORRO, GATO
 }

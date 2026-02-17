@@ -1,4 +1,9 @@
 package com.bichomania.clinicavet.application.address;
 
-public class AddressData {
-}
+public record AddressData(
+        String cep,
+        String city,
+        String state,
+        String street,
+        String neighborhood
+) {}

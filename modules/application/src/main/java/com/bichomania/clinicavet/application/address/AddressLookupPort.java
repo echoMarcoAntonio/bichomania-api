@@ -1,4 +1,5 @@
 package com.bichomania.clinicavet.application.address;
 
-public class AddressLookupPort {
+public interface AddressLookupPort {
+    AddressData findByCep(String cep);
 }

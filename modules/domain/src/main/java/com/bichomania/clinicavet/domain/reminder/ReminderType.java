@@ -1,4 +1,7 @@
 package com.bichomania.clinicavet.domain.reminder;
 
-public class ReminderType {
+public enum ReminderType {
+    VACINA,
+    VERMIFUGO,
+    ANIVERSARIO
 }

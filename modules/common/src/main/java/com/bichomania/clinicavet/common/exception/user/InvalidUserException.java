@@ -1,4 +1,9 @@
 package com.bichomania.clinicavet.common.exception.user;
 
-public class InvalidUserException {
+import com.bichomania.clinicavet.common.exception.BaseException;
+
+public class InvalidUserException extends BaseException {
+    public InvalidUserException(String message) {
+        super(message);
+    }
 }
