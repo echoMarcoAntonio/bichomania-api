@@ -1,10 +1,6 @@
 plugins {
     java
-    id("org.springframework.boot")
-    id("io.spring.dependency-management")
 }
-
-group = "com.bichomania.clinicavet"
 
 dependencies {
     implementation(project(":modules:domain"))
@@ -15,5 +11,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
-    runtimeOnly("org.postgresql:postgresql:42.7.3")
+    runtimeOnly("org.postgresql:postgresql")
+
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.mockito:mockito-core")
+    testImplementation("org.mockito:mockito-junit-jupiter")
+    testImplementation("org.assertj:assertj-core")
 }

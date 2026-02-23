@@ -1,14 +1,9 @@
 package com.bichomania.clinicavet.common.exception.guardian;
 
-public class DuplicateCpfException extends RuntimeException {
-    private final String cpf;
+import com.bichomania.clinicavet.common.exception.BaseException;
 
+public class DuplicateCpfException extends BaseException {
     public DuplicateCpfException(String cpf) {
-        super(String.format("Já existe um tutor com o CPF: %s cadastrado.", cpf));
-        this.cpf = cpf;
-    }
-
-    public String getCpf() {
-        return cpf;
+        super(String.format("CPF já cadastrado: %s", cpf));
     }
 }

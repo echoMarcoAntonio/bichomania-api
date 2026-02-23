@@ -49,40 +49,31 @@ public final class ExceptionMessages {
     public static final String DEWORMER_VALIDITY_OUT_OF_RANGE =
             "Validade deve estar entre 1 e 24 meses.";
     // GUARDIAN
-    public static final String GUARDIAN_FIELD_REQUIRED =
-            "Campos obrigatórios do tutor não foram preenchidos: ";
-    public static final String GUARDIAN_NOT_FOUND =
-            "Tutor não encontrado.";
-    public static final String GUARDIAN_CPF_INVALID =
-            "CPF inválido.";
-    public static final String GUARDIAN_CPF_DUPLICATE =
-            "CPF já cadastrado no sistema.";
-    public static final String GUARDIAN_EMAIL_INVALID =
-            "E-mail inválido.";
-    public static final String GUARDIAN_EMAIL_REQUIRED =
-            "O e-mail do tutor é obrigatório.";
     public static final String GUARDIAN_NAME_REQUIRED =
             "O nome do tutor é obrigatório";
     public static final String GUARDIAN_NAME_TOO_LONG =
             "Nome não pode exceder 100 caracteres.";
-    public static final String GUARDIAN_PHONE_INVALID =
-            "Número de telefone inválido.";
-    public static final String GUARDIAN_CONTACT_TYPE_REQUIRED =
-            "O tipo do contato é obrigatório.";
-    public static final String GUARDIAN_CONTACT_VALUE_REQUIRED =
-            "O valor do contato não pode estar vazio.";
-    public static final String GUARDIAN_CONTACT_REQUIRED =
-            "O tutor deve possuir ao menos um contato cadastrado.";
-    public static final String GUARDIAN_CONTACT_ONE_PRINCIPAL =
-            "O tutor deve ter exatamente um contato principal.";
-    public static final String GUARDIAN_CITY_REQUIRED =
-            "A cidade deve ser informada";
-    public static final String GUARDIAN_CITY_TOO_LONG =
-            "Nome da cidade não pode exceder 100 caracteres.";
-    public static final String GUARDIAN_CEP_INVALID =
-            "O CEP informado é inválido.";
-    public static final String GUARDIAN_ADDRESS_TO_STRING =
-            "Endereço [cidade=%s, estado=%s, cep=%s, detalhes=%s, principal=%s]";
+
+    public static final String GUARDIAN_CPF_REQUIRED = "CPF do tutor é obrigatório.";
+    public static final String GUARDIAN_CPF_INVALID = "CPF informado é inválido.";
+    public static final String GUARDIAN_CPF_DUPLICATE = "CPF já cadastrado: %s";
+    public static final String GUARDIAN_EMAIL_REQUIRED = "Email do tutor é obrigatório.";
+    public static final String GUARDIAN_EMAIL_INVALID = "Email informado é inválido.";
+    public static final String GUARDIAN_CONTACT_REQUIRED = "Tutor deve ter pelo menos um contato.";
+    public static final String GUARDIAN_CONTACT_TYPE_REQUIRED = "Tipo do contato é obrigatório.";
+    public static final String GUARDIAN_CONTACT_VALUE_REQUIRED = "Valor do contato é obrigatório.";
+    public static final String GUARDIAN_CONTACT_ONE_PRINCIPAL = "Deve haver exatamente um contato principal.";
+    public static final String GUARDIAN_NOT_FOUND = "Tutor não encontrado.";
+    public static final String GUARDIAN_ALREADY_INACTIVE = "Tutor já está inativo.";
+    public static final String GUARDIAN_ALREADY_ACTIVE = "Tutor já está ativo.";
+
+    // ADDRESS
+    public static final String GUARDIAN_ADDRESS_TO_STRING = "Endereço [cidade=%s, estado=%s, cep=%s, detalhes=%s, principal=%s]";
+    public static final String GUARDIAN_CITY_REQUIRED = "Cidade é obrigatória.";
+    public static final String GUARDIAN_CITY_TOO_LONG = "Cidade não pode exceder 100 caracteres.";
+    public static final String GUARDIAN_STATE_INVALID = "Estado deve ter 2 caracteres.";
+    public static final String GUARDIAN_CEP_INVALID = "CEP inválido.";
+
     // USER
     public static final String USER_FIELD_REQUIRED =
             "Campos obrigatórios do usuário não foram preenchidos.";
@@ -143,6 +134,7 @@ public final class ExceptionMessages {
             "Formato de data inválido.";
     public static final String INVALID_UUID_FORMAT =
             "Formato de UUID inválido.";
+
     private ExceptionMessages() {
         throw new UnsupportedOperationException("Classe utilitária não pode ser instanciada");
     }

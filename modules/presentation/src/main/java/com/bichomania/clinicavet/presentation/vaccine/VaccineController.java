@@ -1,4 +1,4 @@
-package com.bichomania.clinicavet.vaccine;
+package com.bichomania.clinicavet.presentation.vaccine;
 
 import com.bichomania.clinicavet.application.vaccine.dto.VaccineRequest;
 import com.bichomania.clinicavet.application.vaccine.dto.VaccineResponse;

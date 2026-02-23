@@ -1,4 +1,4 @@
-package com.bichomania.clinicavet.pet;
+package com.bichomania.clinicavet.presentation.pet;
 
 import com.bichomania.clinicavet.application.pet.services.PetService;
 import jakarta.validation.Valid;

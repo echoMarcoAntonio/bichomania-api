@@ -10,8 +10,8 @@ import java.util.Objects;
 @Embeddable
 public class Address {
 
-    public static final String TO_STRING = ExceptionMessages.GUARDIAN_ADDRESS_TO_STRING;
     // Mensagens de exceção personalizadas
+    public static final String TO_STRING = ExceptionMessages.GUARDIAN_ADDRESS_TO_STRING;
     private static final String CITY_REQUIRED = ExceptionMessages.GUARDIAN_CITY_REQUIRED;
     private static final String CITY_TOO_LONG = ExceptionMessages.GUARDIAN_CITY_TOO_LONG;
     private static final String CEP_INVALID = ExceptionMessages.GUARDIAN_CEP_INVALID;
