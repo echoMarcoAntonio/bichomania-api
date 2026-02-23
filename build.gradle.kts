@@ -1,15 +1,17 @@
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.tasks.testing.Test
 
 plugins {
+    // Define a versão do Spring Boot globalmente, mas não aplica na raiz
     id("org.springframework.boot") version "3.4.3" apply false
-    base
+    id("io.spring.dependency-management") version "1.1.7"
+    kotlin("jvm") version "1.9.22" apply false // Se usar Kotlin, senão ignore
+    java
 }
 
-group = "com.bichomania.clinicavet"
-version = "0.0.1-SNAPSHOT"
-
 allprojects {
+    group = "com.bichomania.clinicavet"
+    version = "0.0.1-SNAPSHOT"
+
     repositories {
         mavenCentral()
     }
@@ -17,17 +19,20 @@ allprojects {
 
 subprojects {
     apply(plugin = "java")
+    apply(plugin = "io.spring.dependency-management")
 
-    configure<JavaPluginExtension> {
+    // Configura Java 21 para todos
+    extensions.configure<JavaPluginExtension> {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(21))
         }
     }
 
-    // importa BOM do Spring Boot para TODOS os módulos
-    dependencies {
-        "implementation"(platform("org.springframework.boot:spring-boot-dependencies:3.4.3"))
-        "testImplementation"(platform("org.springframework.boot:spring-boot-dependencies:3.4.3"))
+    // Gerenciamento de versões do Spring (BOM)
+    dependencyManagement {
+        imports {
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.4.3")
+        }
     }
 
     tasks.withType<Test> {
